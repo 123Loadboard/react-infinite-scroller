@@ -8,6 +8,7 @@ export default class InfiniteScroll extends Component {
     hasMore: PropTypes.bool,
     initialLoad: PropTypes.bool,
     isReverse: PropTypes.bool,
+    shouldPreventAutoScroll: PropTypes.bool,
     loader: PropTypes.node,
     loadMore: PropTypes.func.isRequired,
     pageStart: PropTypes.number,
@@ -27,6 +28,7 @@ export default class InfiniteScroll extends Component {
     threshold: 250,
     useWindow: true,
     isReverse: false,
+    shouldPreventAutoScroll: false,
     useCapture: false,
     loader: null,
     getScrollParent: null
@@ -48,11 +50,13 @@ export default class InfiniteScroll extends Component {
 
   componentDidUpdate() {
     if (this.props.isReverse && this.loadMore) {
-      const parentElement = this.getParentElement(this.scrollComponent);
-      parentElement.scrollTop =
-        parentElement.scrollHeight -
-        this.beforeScrollHeight +
-        this.beforeScrollTop;
+      if (!this.props.shouldPreventAutoScroll) {
+        const parentElement = this.getParentElement(this.scrollComponent);
+        parentElement.scrollTop =
+          parentElement.scrollHeight -
+          this.beforeScrollHeight +
+          this.beforeScrollTop;
+      }
       this.loadMore = false;
     }
     this.attachScrollListener();
@@ -214,7 +218,8 @@ export default class InfiniteScroll extends Component {
     // Here we make sure the element is visible as well as checking the offset
     if (
       offset < Number(this.props.threshold) &&
-      (el && el.offsetParent !== null)
+      el &&
+      el.offsetParent !== null
     ) {
       this.detachScrollListener();
       this.beforeScrollHeight = parentNode.scrollHeight;
